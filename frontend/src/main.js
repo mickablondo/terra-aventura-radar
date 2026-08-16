@@ -19,3 +19,19 @@ const map = new Map({
 });
 
 map.addControl(new NavigationControl());
+
+const form = document.getElementById("route-form");
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const depart = form.depart.value.trim();
+  const arrivee = form.arrivee.value.trim();
+
+  if (!depart || !arrivee) return;
+
+  // TODO :
+  // 1. géocoder "depart" et "arrivee" pour obtenir des coordonnées
+  // 2. appeler POST /api/itineraire du backend avec ces coordonnées pour récupérer le trajet + les Terra Aventura à proximité
+  // TODO : voir si 2 appels pour le point 2 ou un seul !?
+  console.log("Recherche d'itinéraire :", { depart, arrivee });
+});
