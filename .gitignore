@@ -1,0 +1,20 @@
+# Dépendances
+**/node_modules/
+ 
+# Variables d'environnement (clés API GraphHopper, identifiants PostGIS...)
+**/.env
+ 
+# Build frontend
+frontend/dist/
+ 
+# Logs
+**/*.log
+npm-debug.log*
+ 
+# Fichiers système
+.DS_Store
+Thumbs.db
+ 
+# Éditeurs
+.vscode/
+.idea/

@@ -58,3 +58,5 @@ Pour les récupérer :
 ## Statut du projet
 
 En cours de construction.
+
+3 répertoires : datas, backend et frontend.
