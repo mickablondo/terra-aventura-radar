@@ -13,7 +13,7 @@ Fonds de carte :
 
 const map = new Map({
   container: "map",
-  style: "https://tiles.openfreemap.org/styles/liberty", // TODO : fond de carte de démo à remplacer plus tard
+  style: "https://tiles.openfreemap.org/styles/liberty",
   center: [-0.45, 46.58], // Nouvelle-Aquitaine, enfin environ ... :)
   zoom: 6,
 });
