@@ -72,7 +72,7 @@ $ cd backend/
 $ node server.js
 ```
 
-Pour géocoder les villes à marquer, on appelle Nominatim.
+Pour géocoder les villes à marquer, on appelle [Nominatim](https://nominatim.org/).
 
 ### Frontend
 
