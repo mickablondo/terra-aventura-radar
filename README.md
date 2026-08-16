@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="terra-aventura-radar.png" alt="Terra Aventura Radar" width="250">
+</p>
+
 # terra-aventura-radar
 
 Carte interactive permettant de calculer un itinéraire et d'afficher tous les parcours **Terra Aventura** situés sur le trajet ou à moins de X km de la route principale.
@@ -10,7 +14,7 @@ Carte interactive permettant de calculer un itinéraire et d'afficher tous les p
 ```mermaid
 flowchart TD
     A["Frontend<br/>MapLibre GL JS"] -->|"itinéraire A → B"| B["Backend API<br/>Node.js + Express/Fastify"]
-    B -->|"calcul du trajet"| C["Moteur de routing<br/>OSRM / Valhalla / GraphHopper"]
+    B -->|"calcul du trajet"| C["Moteur de routing<br/>GraphHopper"]
     B -->|"requête ST_DWithin"| D[("PostgreSQL + PostGIS<br/>Parcours Terra Aventura")]
     E["DATAtourisme<br/>export CSV"] -->|"import (clean_terra_aventura.py)"| D
 ```
