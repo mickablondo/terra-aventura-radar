@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="terra-aventura-radar.png" alt="Terra Aventura Radar" width="250">
+  <img src="datas/images/terra-aventura-radar.png" alt="Terra Aventura Radar" width="250">
 </p>
 
 # terra-aventura-radar
@@ -60,3 +60,28 @@ Pour les récupérer :
 En cours de construction.
 
 3 répertoires : datas, backend et frontend.
+
+### Datas
+
+### Backend
+
+.env à compléter (voir exemple avec .env.example)
+
+```bash
+$ cd backend/
+$ node server.js
+```
+
+Pour géocoder les villes à marquer, on appelle Nominatim.
+
+### Frontend
+
+```bash
+$ cd frontend/
+$ npm run dev
+```
+
+## Démo
+
+![arrivée](datas/images/1.png)  
+![recherche](datas/images/2.png)

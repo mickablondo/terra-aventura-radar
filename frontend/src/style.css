@@ -147,6 +147,13 @@ body {
   outline-offset: 1px;
 }
 
+.route-card__error {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-rust);
+}
+
 .route-card__submit {
   align-self: flex-end;
   width: 42px;
@@ -160,7 +167,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.route-card__submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .route-card__submit:hover {
