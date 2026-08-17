@@ -4,10 +4,17 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL;
+const GRAPHHOPPER_API_KEY = process.env.GRAPHHOPPER_API_KEY;
 
 if (!CONTACT_EMAIL) {
   console.warn(
     "CONTACT_EMAIL n'est pas défini dans .env — Nominatim peut bloquer les requêtes sans identification valide. Ajoute CONTACT_EMAIL=ton@email.fr",
+  );
+}
+
+if (!GRAPHHOPPER_API_KEY) {
+  console.warn(
+    "GRAPHHOPPER_API_KEY n'est pas défini dans .env — la route /api/itineraire ne fonctionnera pas. Ajoute GRAPHHOPPER_API_KEY=ta_cle",
   );
 }
 
@@ -66,26 +73,67 @@ app.get("/api/geocode", async (req, res) => {
 /**
  * Calcule un itinéraire entre deux points et recherche les Terra Aventura à proximité
  * @param {Object} req.body - Les coordonnées de départ et d'arrivée
- * @param {Array<number>} req.body.depart - Coordonnées de départ
- * @param {Array<number>} req.body.arrivee - Coordonnées d'arrivée
+ * @param {{lat: number, lon: number}} req.body.depart - Coordonnées de départ
+ * @param {{lat: number, lon: number}} req.body.arrivee - Coordonnées d'arrivée
  * @returns {Promise<Object>} - L'itinéraire calculé et les Terra Aventura à proximité
  */
 app.post("/api/itineraire", async (req, res) => {
   const { depart, arrivee } = req.body;
 
-  if (!depart || !arrivee) {
+  if (!depart?.lat || !depart?.lon || !arrivee?.lat || !arrivee?.lon) {
     return res.status(400).json({
-      error: "Les champs 'depart' et 'arrivee' sont requis (ex: [lon, lat])",
+      error:
+        "Les champs 'depart' et 'arrivee' sont requis, au format { lat, lon }",
     });
   }
 
-  // TODO : appeler l'API GraphHopper pour calculer l'itinéraire réel
-  // TODO : interroger PostGIS avec ST_DWithin pour trouver les Terra Aventura à proximité du tracé obtenu
+  if (!GRAPHHOPPER_API_KEY) {
+    return res
+      .status(500)
+      .json({ error: "GRAPHHOPPER_API_KEY n'est pas configurée côté serveur" });
+  }
 
-  res.json({
-    itineraire: { depart, arrivee, geometry: null },
-    terraAventura: [],
-  });
+  const url = new URL("https://graphhopper.com/api/1/route");
+
+  url.searchParams.append("point", `${depart.lat},${depart.lon}`);
+  url.searchParams.append("point", `${arrivee.lat},${arrivee.lon}`);
+  url.searchParams.set("vehicle", "car");
+  url.searchParams.set("locale", "fr");
+  url.searchParams.set("points_encoded", "false");
+  url.searchParams.set("key", GRAPHHOPPER_API_KEY);
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      console.error("Erreur GraphHopper :", response.status, errorBody);
+      return res
+        .status(502)
+        .json({ error: "Impossible de calculer l'itinéraire" });
+    }
+
+    const data = await response.json();
+    const path = data.paths?.[0];
+
+    if (!path) {
+      return res.status(404).json({ error: "Aucun itinéraire trouvé" });
+    }
+
+    // TODO : interroger PostGIS avec ST_DWithin pour trouver les Terra Aventura à proximité de path.points
+
+    res.json({
+      itineraire: {
+        geometry: path.points,
+        distance: path.distance,
+        duration: path.time,
+      },
+      terraAventura: [],
+    });
+  } catch (err) {
+    console.error("Erreur de routing :", err.message);
+    res.status(502).json({ error: "Le service de routing est indisponible" });
+  }
 });
 
 app.listen(PORT, () => {

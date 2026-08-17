@@ -27,8 +27,7 @@ const errorEl = document.getElementById("route-error");
 let departMarker = null;
 let arriveeMarker = null;
 
-// Petite pause, utilisée pour espacer les appels à /api/geocode
-// (Nominatim limite à 1 requête/seconde, voir sa politique d'usage)
+// Force une pause utilisée pour espacer les appels à /api/geocode (Nominatim limite à 1 requête/seconde)
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -44,6 +43,21 @@ async function geocode(query) {
   return response.json(); // { lat, lon, displayName }
 }
 
+// Calcule l'itinéraire entre deux points (appel à GraphHopper) et récupère les Terra Aventura à proximité
+async function fetchItineraire(depart, arrivee) {
+  const response = await fetch("/api/itineraire", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ depart, arrivee }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Impossible de calculer l'itinéraire");
+  }
+
+  return response.json(); // format : { itineraire: { geometry, distance, duration }, terraAventura }
+}
+
 /**
  * Place un marker sur la carte
  * @param {*} position - { lat, lon, displayName }
@@ -54,6 +68,58 @@ function placeMarker(position, color) {
   return new Marker({ color })
     .setLngLat([position.lon, position.lat])
     .addTo(map);
+}
+
+/**
+ * Affiche le tracé de l'itinéraire sur la carte
+ * @param {*} geometry - GeoJSON LineString { type: "LineString", coordinates: [[lon, lat], ...] }
+ * @returns
+ */
+function displayRoute(geometry) {
+  const routeFeature = { type: "Feature", geometry, properties: {} };
+  const source = map.getSource("route");
+
+  if (source) {
+    source.setData(routeFeature);
+    return;
+  }
+
+  map.addSource("route", { type: "geojson", data: routeFeature });
+  map.addLayer({
+    id: "route-line",
+    type: "line",
+    source: "route",
+    layout: { "line-join": "round", "line-cap": "round" },
+    paint: {
+      "line-color": "#a8432a",
+      "line-width": 4,
+      "line-opacity": 0.85,
+    },
+  });
+}
+
+/**
+ * Calcule les coordonnées du rectangle englobant un ensemble de points
+ * @param {*} coordinates - Liste de coordonnées [[lon, lat], ...]
+ * @returns
+ */
+function computeBounds(coordinates) {
+  let minLon = Infinity;
+  let minLat = Infinity;
+  let maxLon = -Infinity;
+  let maxLat = -Infinity;
+
+  for (const [lon, lat] of coordinates) {
+    if (lon < minLon) minLon = lon;
+    if (lon > maxLon) maxLon = lon;
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+  }
+
+  return [
+    [minLon, minLat],
+    [maxLon, maxLat],
+  ];
 }
 
 /**
@@ -99,21 +165,26 @@ form.addEventListener("submit", async (event) => {
     departMarker = placeMarker(departPos, "#d9a441");
     arriveeMarker = placeMarker(arriveePos, "#a8432a");
 
-    // Calcul des bounds pour ajuster la vue de la carte afin d'inclure les deux markers
-    const bounds = [
-      [
-        Math.min(departPos.lon, arriveePos.lon),
-        Math.min(departPos.lat, arriveePos.lat),
-      ],
-      [
-        Math.max(departPos.lon, arriveePos.lon),
-        Math.max(departPos.lat, arriveePos.lat),
-      ],
-    ];
+    // Cadrage 1 : on cadre la carte sur les deux markers de départ et d'arrivée
+    map.fitBounds(
+      computeBounds([
+        [departPos.lon, departPos.lat],
+        [arriveePos.lon, arriveePos.lat],
+      ]),
+      { padding: 80, maxZoom: 12, duration: 800 },
+    );
 
-    map.fitBounds(bounds, { padding: 80, maxZoom: 12, duration: 800 });
+    const { itineraire } = await fetchItineraire(departPos, arriveePos);
+    displayRoute(itineraire.geometry);
 
-    // TODO : appeler POST /api/itineraire avec ces coordonnées pour tracer le trajet réel et récupérer les Terra Aventura à proximité
+    // Cadrage 2 : on cadre la carte sur l'ensemble du tracé de l'itinéraire
+    map.fitBounds(computeBounds(itineraire.geometry.coordinates), {
+      padding: 80,
+      maxZoom: 12,
+      duration: 800,
+    });
+
+    // TODO : afficher les Terra Aventura à proximité (itineraire.terraAventura)
   } catch (err) {
     console.error("Erreur lors de la recherche d'itinéraire :", err);
     setError(err.message || "Une erreur est survenue, vérifie l'orthographe.");

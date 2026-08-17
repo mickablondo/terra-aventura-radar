@@ -153,7 +153,8 @@ $ cd backend/
 $ node server.js
 ```
 
-Pour géocoder les villes à marquer, on appelle [Nominatim](https://nominatim.org/).
+Pour géocoder les villes à marquer, on appelle [Nominatim](https://nominatim.org/).  
+Puis pour calculer l'itinéraire, on utilise [GraphHopper](https://graphhopper.com).
 
 ### Frontend
 
