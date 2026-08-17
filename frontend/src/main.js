@@ -1,4 +1,10 @@
-import { Map, Marker, NavigationControl, setWorkerUrl } from "maplibre-gl";
+import {
+  Map,
+  Marker,
+  NavigationControl,
+  Popup,
+  setWorkerUrl,
+} from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import "./style.css";
@@ -26,6 +32,7 @@ const errorEl = document.getElementById("route-error");
 
 let departMarker = null;
 let arriveeMarker = null;
+let terraAventuraMarkers = [];
 
 // Force une pause utilisée pour espacer les appels à /api/geocode (Nominatim limite à 1 requête/seconde)
 function wait(ms) {
@@ -96,6 +103,44 @@ function displayRoute(geometry) {
       "line-opacity": 0.85,
     },
   });
+}
+
+// Echappe les caractères spéciaux dans une chaîne pour l'afficher dans du HTML
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text ?? "";
+  return div.innerHTML;
+}
+
+// Retire les marqueurs Terra Aventura de la recherche précédente
+function clearTerraAventuraMarkers() {
+  terraAventuraMarkers.forEach((marker) => marker.remove());
+  terraAventuraMarkers = [];
+}
+
+/**
+ * Affiche un marqueur (avec popup) pour chaque Terra Aventura à proximité du trajet
+ * @param {*} sites - Liste renvoyée par le backend : { nom, commune, lon, lat, site_internet, distance_m, ... }[]
+ */
+function displayTerraAventura(sites) {
+  clearTerraAventuraMarkers();
+
+  for (const site of sites) {
+    const lien = site.site_internet
+      ? `<br/><a href="${escapeHtml(site.site_internet)}" target="_blank" rel="noopener">Voir la fiche</a>`
+      : "";
+
+    const popup = new Popup({ offset: 20 }).setHTML(
+      `<strong>${escapeHtml(site.nom)}</strong><br/>${escapeHtml(site.commune)}${lien}`,
+    );
+
+    const marker = new Marker({ color: "#16342a" })
+      .setLngLat([site.lon, site.lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    terraAventuraMarkers.push(marker);
+  }
 }
 
 /**
@@ -174,8 +219,12 @@ form.addEventListener("submit", async (event) => {
       { padding: 80, maxZoom: 12, duration: 800 },
     );
 
-    const { itineraire } = await fetchItineraire(departPos, arriveePos);
-    displayRoute(itineraire.geometry);
+    const { itineraire, terraAventura } = await fetchItineraire(
+      departPos,
+      arriveePos,
+    );
+    displayRoute(itineraire.geometry); // Affiche le tracé de l'itinéraire sur la carte
+    displayTerraAventura(terraAventura); // Affiche les markers des Terra Aventura à proximité du tracé
 
     // Cadrage 2 : on cadre la carte sur l'ensemble du tracé de l'itinéraire
     map.fitBounds(computeBounds(itineraire.geometry.coordinates), {
@@ -183,8 +232,6 @@ form.addEventListener("submit", async (event) => {
       maxZoom: 12,
       duration: 800,
     });
-
-    // TODO : afficher les Terra Aventura à proximité (itineraire.terraAventura)
   } catch (err) {
     console.error("Erreur lors de la recherche d'itinéraire :", err);
     setError(err.message || "Une erreur est survenue, vérifie l'orthographe.");
