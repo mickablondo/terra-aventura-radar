@@ -35,6 +35,37 @@ if (!GRAPHHOPPER_API_KEY) {
 
 app.use(express.json());
 
+/**
+ * Recherche les Terra Aventura à moins de rayonKm d'un tracé donné
+ * @param {Object} geometry - GeoJSON LineString (le tracé de l'itinéraire)
+ * @param {number} rayonKm - Rayon de recherche en kilomètres
+ * @returns {Promise<Array>} - Liste des Terra Aventura triée par distance croissante
+ */
+async function findTerraAventuraProximite(geometry, rayonKm) {
+  const rayonMetres = rayonKm * 1000;
+
+  const { rows } = await pool.query(
+    `SELECT
+       identifiant,
+       nom,
+       commune,
+       code_postal,
+       departement,
+       region,
+       site_internet,
+       createur,
+       ST_X(geom) AS lon,
+       ST_Y(geom) AS lat,
+       ST_Distance(geom::geography, ST_GeomFromGeoJSON($1)::geography) AS distance_m
+     FROM terra_aventura
+     WHERE ST_DWithin(geom::geography, ST_GeomFromGeoJSON($1)::geography, $2)
+     ORDER BY distance_m ASC`,
+    [JSON.stringify(geometry), rayonMetres],
+  );
+
+  return rows;
+}
+
 // Route pour vérifier que le serveur est OK
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
@@ -137,29 +168,10 @@ app.post("/api/itineraire", async (req, res) => {
 
     // Rayon de recherche autour du tracé
     const rayonKm = Number(req.body.rayon) || 10; // 10 km par défaut
-    const rayonMetres = rayonKm * 1000;
 
     let terraAventura = [];
     try {
-      const { rows } = await pool.query(
-        `SELECT
-           identifiant,
-           nom,
-           commune,
-           code_postal,
-           departement,
-           region,
-           site_internet,
-           createur,
-           ST_X(geom) AS lon,
-           ST_Y(geom) AS lat,
-           ST_Distance(geom::geography, ST_GeomFromGeoJSON($1)::geography) AS distance_m
-         FROM terra_aventura
-         WHERE ST_DWithin(geom::geography, ST_GeomFromGeoJSON($1)::geography, $2)
-         ORDER BY distance_m ASC`,
-        [JSON.stringify(path.points), rayonMetres],
-      );
-      terraAventura = rows;
+      terraAventura = await findTerraAventuraProximite(path.points, rayonKm);
     } catch (dbErr) {
       // Si la table terra_aventura n'existe pas ou si la requête échoue, on log l'erreur mais on continue
       console.error("Erreur PostGIS :", dbErr.message);
@@ -176,6 +188,33 @@ app.post("/api/itineraire", async (req, res) => {
   } catch (err) {
     console.error("Erreur de routing :", err.message);
     res.status(502).json({ error: "Le service de routing est indisponible" });
+  }
+});
+
+/**
+ * Recherche les Terra Aventura à proximité d'un tracé déjà calculé, sans
+ * rappeler GraphHopper. Utile pour rafraîchir la liste quand l'utilisateur
+ * change juste le rayon de recherche, sans recalculer l'itinéraire.
+ * @param {Object} req.body - La géométrie du tracé et le rayon souhaité
+ * @param {Object} req.body.geometry - GeoJSON LineString du tracé
+ * @param {number} req.body.rayon - Rayon de recherche en km
+ * @returns {Promise<{terraAventura: Array}>}
+ */
+app.post("/api/terra-aventura", async (req, res) => {
+  const { geometry, rayon } = req.body;
+
+  if (!geometry) {
+    return res.status(400).json({ error: "Le champ 'geometry' est requis" });
+  }
+
+  const rayonKm = Number(rayon) || 10;
+
+  try {
+    const terraAventura = await findTerraAventuraProximite(geometry, rayonKm);
+    res.json({ terraAventura });
+  } catch (err) {
+    console.error("Erreur PostGIS :", err.message);
+    res.status(502).json({ error: "Le service de recherche est indisponible" });
   }
 });
 

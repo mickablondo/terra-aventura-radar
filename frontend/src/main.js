@@ -28,11 +28,15 @@ map.addControl(new NavigationControl());
 
 const form = document.getElementById("route-form");
 const submitButton = document.getElementById("route-submit");
+const submitIcon = submitButton.querySelector(".route-card__submit-icon");
 const errorEl = document.getElementById("route-error");
+const radiusButtons = document.querySelectorAll(".route-card__radius-btn");
 
 let departMarker = null;
 let arriveeMarker = null;
 let terraAventuraMarkers = [];
+let selectedRayon = 10;
+let lastRouteGeometry = null; // pour rafraîchir juste les Terra Aventura sans rappeler GraphHopper
 
 // Force une pause utilisée pour espacer les appels à /api/geocode (Nominatim limite à 1 requête/seconde)
 function wait(ms) {
@@ -51,11 +55,11 @@ async function geocode(query) {
 }
 
 // Calcule l'itinéraire entre deux points (appel à GraphHopper) et récupère les Terra Aventura à proximité
-async function fetchItineraire(depart, arrivee) {
+async function fetchItineraire(depart, arrivee, rayon) {
   const response = await fetch("/api/itineraire", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ depart, arrivee }),
+    body: JSON.stringify({ depart, arrivee, rayon }),
   });
 
   if (!response.ok) {
@@ -63,6 +67,22 @@ async function fetchItineraire(depart, arrivee) {
   }
 
   return response.json(); // format : { itineraire: { geometry, distance, duration }, terraAventura }
+}
+
+// Rafraîchit juste la liste des Terra Aventura à proximité d'un tracé déjà
+// calculé, sans rappeler GraphHopper (utilisé quand on change le rayon)
+async function fetchTerraAventura(geometry, rayon) {
+  const response = await fetch("/api/terra-aventura", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ geometry, rayon }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Impossible de rafraîchir les Terra Aventura à proximité");
+  }
+
+  return response.json(); // { terraAventura }
 }
 
 /**
@@ -105,7 +125,8 @@ function displayRoute(geometry) {
   });
 }
 
-// Echappe les caractères spéciaux dans une chaîne pour l'afficher dans du HTML
+// Échappe le HTML basique pour éviter qu'un nom/ville avec des caractères
+// spéciaux (ex: "<" dans un nom de circuit) ne casse le rendu de la popup.
 function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text ?? "";
@@ -177,11 +198,13 @@ function setError(message) {
 }
 
 /**
- * Définit l'état de chargement du bouton de soumission
- * @param {*} isLoading - true si le bouton doit être désactivé, false sinon
+ * Définit l'état de chargement du formulaire (soumission ou changement de rayon)
+ * @param {*} isLoading - true si les contrôles doivent être désactivés, false sinon
  */
 function setLoading(isLoading) {
   submitButton.disabled = isLoading;
+  submitIcon.classList.toggle("is-spinning", isLoading);
+  radiusButtons.forEach((btn) => (btn.disabled = isLoading));
 }
 
 /**
@@ -222,9 +245,11 @@ form.addEventListener("submit", async (event) => {
     const { itineraire, terraAventura } = await fetchItineraire(
       departPos,
       arriveePos,
+      selectedRayon,
     );
-    displayRoute(itineraire.geometry); // Affiche le tracé de l'itinéraire sur la carte
-    displayTerraAventura(terraAventura); // Affiche les markers des Terra Aventura à proximité du tracé
+    displayRoute(itineraire.geometry);
+    displayTerraAventura(terraAventura);
+    lastRouteGeometry = itineraire.geometry;
 
     // Cadrage 2 : on cadre la carte sur l'ensemble du tracé de l'itinéraire
     map.fitBounds(computeBounds(itineraire.geometry.coordinates), {
@@ -238,4 +263,40 @@ form.addEventListener("submit", async (event) => {
   } finally {
     setLoading(false);
   }
+});
+
+// Changement de rayon : on ne recalcule pas l'itinéraire, on rafraîchit
+// juste la liste des Terra Aventura à proximité du tracé déjà obtenu.
+radiusButtons.forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const rayon = Number(btn.dataset.rayon);
+    if (rayon === selectedRayon) return;
+
+    selectedRayon = rayon;
+    radiusButtons.forEach((b) => {
+      b.classList.toggle("is-active", b === btn);
+      b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+    });
+
+    if (!lastRouteGeometry) return; // aucune recherche encore faite, le rayon sera pris en compte à la prochaine
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const { terraAventura } = await fetchTerraAventura(
+        lastRouteGeometry,
+        selectedRayon,
+      );
+      displayTerraAventura(terraAventura);
+    } catch (err) {
+      console.error("Erreur lors du changement de rayon :", err);
+      setError(
+        err.message ||
+          "Impossible de rafraîchir les Terra Aventura à proximité.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  });
 });

@@ -60,6 +60,29 @@
           required
         />
       </div>
+      <div class="route-card__field">
+        <span class="route-card__radius-label">Rayon de recherche</span>
+        <div
+          class="route-card__radius-group"
+          role="group"
+          aria-label="Rayon de recherche"
+        >
+          <button type="button" class="route-card__radius-btn" data-rayon="5">
+            5 km
+          </button>
+          <button
+            type="button"
+            class="route-card__radius-btn is-active"
+            data-rayon="10"
+            aria-pressed="true"
+          >
+            10 km
+          </button>
+          <button type="button" class="route-card__radius-btn" data-rayon="20">
+            20 km
+          </button>
+        </div>
+      </div>
       <p class="route-card__error" id="route-error" role="alert" hidden></p>
       <button
         type="submit"
@@ -67,7 +90,7 @@
         id="route-submit"
         aria-label="Tracer l'itinéraire"
       >
-        <span aria-hidden="true">&rarr;</span>
+        <span class="route-card__submit-icon" aria-hidden="true">&rarr;</span>
       </button>
     </form>
 
