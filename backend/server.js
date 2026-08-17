@@ -1,10 +1,25 @@
 require("dotenv").config();
 const express = require("express");
+const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL;
 const GRAPHHOPPER_API_KEY = process.env.GRAPHHOPPER_API_KEY;
+
+const pool = new Pool({
+  host: process.env.DB_HOST || "localhost",
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+});
+
+if (!process.env.DB_NAME) {
+  console.warn(
+    "DB_NAME n'est pas défini dans .env — la recherche des Terra Aventura à proximité ne fonctionnera pas.",
+  );
+}
 
 if (!CONTACT_EMAIL) {
   console.warn(
@@ -120,7 +135,35 @@ app.post("/api/itineraire", async (req, res) => {
       return res.status(404).json({ error: "Aucun itinéraire trouvé" });
     }
 
-    // TODO : interroger PostGIS avec ST_DWithin pour trouver les Terra Aventura à proximité de path.points
+    // Rayon de recherche autour du tracé
+    const rayonKm = Number(req.body.rayon) || 10; // 10 km par défaut
+    const rayonMetres = rayonKm * 1000;
+
+    let terraAventura = [];
+    try {
+      const { rows } = await pool.query(
+        `SELECT
+           identifiant,
+           nom,
+           commune,
+           code_postal,
+           departement,
+           region,
+           site_internet,
+           createur,
+           ST_X(geom) AS lon,
+           ST_Y(geom) AS lat,
+           ST_Distance(geom::geography, ST_GeomFromGeoJSON($1)::geography) AS distance_m
+         FROM terra_aventura
+         WHERE ST_DWithin(geom::geography, ST_GeomFromGeoJSON($1)::geography, $2)
+         ORDER BY distance_m ASC`,
+        [JSON.stringify(path.points), rayonMetres],
+      );
+      terraAventura = rows;
+    } catch (dbErr) {
+      // Si la table terra_aventura n'existe pas ou si la requête échoue, on log l'erreur mais on continue
+      console.error("Erreur PostGIS :", dbErr.message);
+    }
 
     res.json({
       itineraire: {
@@ -128,7 +171,7 @@ app.post("/api/itineraire", async (req, res) => {
         distance: path.distance,
         duration: path.time,
       },
-      terraAventura: [],
+      terraAventura,
     });
   } catch (err) {
     console.error("Erreur de routing :", err.message);
