@@ -63,6 +63,30 @@ En cours de construction.
 
 ### Datas
 
+1. Fichier CSV récupéré
+2. Transformer le fichier CSV en geojson
+3. Installer PostgreSQL avec PostGIS (dans les « Spatial Extensions » du Stack Builder installé avec postgre) : https://postgresql.org/download/
+4. Créer la table :
+
+```sql
+   CREATE TABLE terra_aventura (
+    id SERIAL PRIMARY KEY,
+    identifiant TEXT UNIQUE,
+    nom TEXT NOT NULL,
+    commune TEXT,
+    code_postal TEXT,
+    departement TEXT,
+    region TEXT,
+    site_internet TEXT,
+    createur TEXT,
+    geom GEOMETRY(Point, 4326) NOT NULL
+);
+
+CREATE INDEX idx_terra_aventura_geom ON terra_aventura USING GIST (geom);
+```
+
+5. WIP : insérer les données en base via ogr2ogr
+
 ### Backend
 
 .env à compléter (voir exemple avec .env.example)
