@@ -72,7 +72,7 @@ En cours de construction.
 5. Créer la table :
 
 ```sql
-   CREATE TABLE terra_aventura (
+CREATE TABLE terra_aventura (
     id SERIAL PRIMARY KEY,
     identifiant TEXT UNIQUE,
     nom TEXT NOT NULL,
