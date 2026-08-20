@@ -24,7 +24,7 @@ Carte interactive permettant de calculer un itinéraire et d'afficher tous les p
 
 ```mermaid
 flowchart TD
-    A["Frontend<br/>MapLibre GL JS"] -->|"itinéraire A → B"| B["Backend API<br/>Node.js + Express/Fastify"]
+    A["Frontend<br/>MapLibre GL JS"] -->|"itinéraire A → B"| B["Backend API<br/>Node.js + Express"]
     B -->|"calcul du trajet"| C["Moteur de routing<br/>GraphHopper"]
     B -->|"requête ST_DWithin"| D[("PostgreSQL + PostGIS<br/>Parcours Terra Aventura")]
     E["DATAtourisme<br/>export CSV"] -->|"import (clean_terra_aventura.py)"| D
