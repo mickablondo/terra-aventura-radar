@@ -15,6 +15,11 @@ Carte interactive permettant de calculer un itinéraire et d'afficher tous les p
 > Projet non officiel, sans lien avec le CRT Nouvelle-Aquitaine.
 > Les données des parcours proviennent de [DATAtourisme](https://www.datatourisme.fr/) (licence ouverte).
 
+## De quoi ça a l'air ?
+
+![arrivée](datas/images/1.png)  
+![recherche](datas/images/2.png)
+
 ## Architecture
 
 ```mermaid
@@ -168,11 +173,6 @@ Puis pour calculer l'itinéraire, on utilise [GraphHopper](https://graphhopper.c
 $ cd frontend/
 $ npm run dev
 ```
-
-## Démo
-
-![arrivée](datas/images/1.png)  
-![recherche](datas/images/2.png)
 
 ## Hébergement et CI
 
