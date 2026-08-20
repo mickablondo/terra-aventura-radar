@@ -1,11 +1,23 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL;
 const GRAPHHOPPER_API_KEY = process.env.GRAPHHOPPER_API_KEY;
+
+// Domaines autorisés à appeler cette API
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim());
+
+if (!process.env.FRONTEND_URL) {
+  console.warn(
+    "FRONTEND_URL n'est pas défini dans .env — seul http://localhost:5173 est autorisé (CORS). Ajoute FRONTEND_URL=https://ton-app.vercel.app en production.",
+  );
+}
 
 const pool = new Pool({
   host: process.env.DB_HOST || "localhost",
@@ -33,6 +45,7 @@ if (!GRAPHHOPPER_API_KEY) {
   );
 }
 
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 /**

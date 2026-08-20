@@ -11,6 +11,8 @@ import "./style.css";
 
 setWorkerUrl(workerUrl);
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
 /*
 Fonds de carte :
 - https://demotiles.maplibre.org/style.json (MapLibre)
@@ -45,7 +47,9 @@ function wait(ms) {
 
 // Géocode un nom de ville en coordonnées, via l'API backend /api/geocode
 async function geocode(query) {
-  const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+  const response = await fetch(
+    `${API_BASE_URL}/api/geocode?q=${encodeURIComponent(query)}`,
+  );
 
   if (!response.ok) {
     throw new Error(`Ville introuvable : ${query}`);
@@ -56,7 +60,7 @@ async function geocode(query) {
 
 // Calcule l'itinéraire entre deux points (appel à GraphHopper) et récupère les Terra Aventura à proximité
 async function fetchItineraire(depart, arrivee, rayon) {
-  const response = await fetch("/api/itineraire", {
+  const response = await fetch(`${API_BASE_URL}/api/itineraire`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ depart, arrivee, rayon }),
@@ -72,7 +76,7 @@ async function fetchItineraire(depart, arrivee, rayon) {
 // Rafraîchit juste la liste des Terra Aventura à proximité d'un tracé déjà
 // calculé, sans rappeler GraphHopper (utilisé quand on change le rayon)
 async function fetchTerraAventura(geometry, rayon) {
-  const response = await fetch("/api/terra-aventura", {
+  const response = await fetch(`${API_BASE_URL}/api/terra-aventura`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ geometry, rayon }),

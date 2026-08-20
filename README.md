@@ -167,3 +167,13 @@ $ npm run dev
 
 ![arrivée](datas/images/1.png)  
 ![recherche](datas/images/2.png)
+
+## Hébergement et CI
+
+### CI
+
+<i>WIP</i>
+
+### Hébergement
+
+<i>WIP</i>
