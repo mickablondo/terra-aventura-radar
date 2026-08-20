@@ -2,6 +2,12 @@
   <img src="datas/images/terra-aventura-radar.png" alt="Terra Aventura Radar" width="250">
 </p>
 
+<p align="center">
+  <a href="https://terra-aventura-radar.vercel.app/">
+    <img src="https://img.shields.io/badge/EN LIGNE-terra--aventura--radar.vercel.app-16342A?style=for-the-badge" alt="Démo en ligne">
+  </a>
+</p>
+
 # terra-aventura-radar
 
 Carte interactive permettant de calculer un itinéraire et d'afficher tous les parcours **Terra Aventura** situés sur le trajet ou à moins de X km de la route principale.
@@ -177,3 +183,7 @@ $ npm run dev
 ### Hébergement
 
 <i>WIP</i>
+
+- Database : [Supabase](https://supabase.com/)
+- Backend : https://terra-aventura-radar.onrender.com/api/health sur [Render](https://render.com)
+- Frontend : https://terra-aventura-radar.vercel.app/ sur [Vercel](https://vercel.com/)
