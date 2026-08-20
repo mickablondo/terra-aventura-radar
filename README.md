@@ -66,9 +66,7 @@ Pour les récupérer :
 
    Ce script corrige l'encodage du fichier, retire les doublons (un même circuit peut apparaître deux fois dans l'export : une fois comme "Produit", une fois comme "Lieu"), et génère un fichier `mon_export.geojson` prêt à être importé dans la base PostGIS.
 
-## Statut du projet
-
-En cours de construction.
+## Détails du projet
 
 3 répertoires : datas, backend et frontend.
 
@@ -157,6 +155,8 @@ DROP TABLE terra_aventura_import;
 
 ### Backend
 
+<i>Doc en cours</i>
+
 .env à compléter (voir exemple avec .env.example)
 
 ```bash
@@ -168,6 +168,8 @@ Pour géocoder les villes à marquer, on appelle [Nominatim](https://nominatim.o
 Puis pour calculer l'itinéraire, on utilise [GraphHopper](https://graphhopper.com).
 
 ### Frontend
+
+<i>Doc en cours</i>
 
 ```bash
 $ cd frontend/
