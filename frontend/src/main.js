@@ -137,6 +137,32 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+/**
+ * Construit les liens HTML vers les sites internet des Terra Aventura
+ * @param {*} siteInternet - Chaîne de caractères contenant les URLs séparées par des virgules
+ * @returns - Chaîne HTML contenant les liens cliquables vers les sites internet
+ */
+function buildSiteLinks(siteInternet) {
+  if (!siteInternet) return "";
+
+  const urls = siteInternet
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean);
+
+  const links = urls.map((url) => {
+    let label = url;
+    try {
+      label = new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      // URL malformée en base : on garde l'URL brute comme libellé plutôt que de planter
+    }
+    return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
+  });
+
+  return `<br/>${links.join(" · ")}`;
+}
+
 // Retire les marqueurs Terra Aventura de la recherche précédente
 function clearTerraAventuraMarkers() {
   terraAventuraMarkers.forEach((marker) => marker.remove());
@@ -151,12 +177,10 @@ function displayTerraAventura(sites) {
   clearTerraAventuraMarkers();
 
   for (const site of sites) {
-    const lien = site.site_internet
-      ? `<br/><a href="${escapeHtml(site.site_internet)}" target="_blank" rel="noopener">Voir la fiche</a>`
-      : "";
+    const liens = buildSiteLinks(site.site_internet);
 
     const popup = new Popup({ offset: 20 }).setHTML(
-      `<strong>${escapeHtml(site.nom)}</strong><br/>${escapeHtml(site.commune)}${lien}`,
+      `<strong>${escapeHtml(site.nom)}</strong><br/>${escapeHtml(site.commune)}${liens}`,
     );
 
     const marker = new Marker({ color: "#16342a" })
