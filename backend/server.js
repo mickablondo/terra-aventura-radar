@@ -5,7 +5,6 @@ const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL;
 const GRAPHHOPPER_API_KEY = process.env.GRAPHHOPPER_API_KEY;
 
 // Domaines autorisés à appeler cette API
@@ -30,12 +29,6 @@ const pool = new Pool({
 if (!process.env.DB_NAME) {
   console.warn(
     "DB_NAME n'est pas défini dans .env — la recherche des Terra Aventura à proximité ne fonctionnera pas.",
-  );
-}
-
-if (!CONTACT_EMAIL) {
-  console.warn(
-    "CONTACT_EMAIL n'est pas défini dans .env — Nominatim peut bloquer les requêtes sans identification valide. Ajoute CONTACT_EMAIL=ton@email.fr",
   );
 }
 
@@ -96,33 +89,37 @@ app.get("/api/geocode", async (req, res) => {
     return res.status(400).json({ error: "Le paramètre 'q' est requis" });
   }
 
-  const url = new URL("https://nominatim.openstreetmap.org/search");
-  url.searchParams.set("q", query);
-  url.searchParams.set("format", "json");
+  if (!GRAPHHOPPER_API_KEY) {
+    return res
+      .status(500)
+      .json({ error: "GRAPHHOPPER_API_KEY n'est pas configurée côté serveur" });
+  }
+
+  const url = new URL("https://graphhopper.com/api/1/geocode");
+  url.searchParams.set("q", `${query}, France`);
+  url.searchParams.set("locale", "fr");
   url.searchParams.set("limit", "1");
-  url.searchParams.set("countrycodes", "fr");
-  url.searchParams.set("viewbox", "-5.5,51.5,9.6,41.0");
-  url.searchParams.set("bounded", "1");
+  url.searchParams.set("key", GRAPHHOPPER_API_KEY);
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": `terra-aventura-radar/0.1 (${CONTACT_EMAIL || "contact non renseigné"})`,
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`Nominatim a répondu ${response.status}`);
+      throw new Error(`GraphHopper Geocoding a répondu ${response.status}`);
     }
 
-    const results = await response.json();
+    const data = await response.json();
+    const hit = data.hits?.[0];
 
-    if (results.length === 0) {
+    if (!hit) {
       return res.status(404).json({ error: "Ville introuvable" });
     }
 
-    const { lat, lon, display_name: displayName } = results[0];
-    res.json({ lat: parseFloat(lat), lon: parseFloat(lon), displayName });
+    const displayName = [hit.name, hit.city, hit.state, hit.country]
+      .filter((part, index, arr) => part && arr.indexOf(part) === index)
+      .join(", ");
+
+    res.json({ lat: hit.point.lat, lon: hit.point.lng, displayName });
   } catch (err) {
     console.error("Erreur de géocodage :", err.message);
     res.status(502).json({ error: "Le service de géocodage est indisponible" });
