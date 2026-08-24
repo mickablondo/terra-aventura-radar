@@ -39,7 +39,7 @@ if (!GRAPHHOPPER_API_KEY) {
 }
 
 app.use(cors({ origin: allowedOrigins }));
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
 /**
  * Recherche les Terra Aventura à moins de rayonKm d'un tracé donné
