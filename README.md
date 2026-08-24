@@ -15,11 +15,16 @@ Carte interactive permettant de calculer un itinéraire et d'afficher tous les p
 > Projet non officiel, sans lien avec le CRT Nouvelle-Aquitaine.
 > Les données des parcours proviennent de [DATAtourisme](https://www.datatourisme.fr/) (licence ouverte).
 
+## De quoi ça a l'air ?
+
+![arrivée](datas/images/1.png)  
+![recherche](datas/images/2.png)
+
 ## Architecture
 
 ```mermaid
 flowchart TD
-    A["Frontend<br/>MapLibre GL JS"] -->|"itinéraire A → B"| B["Backend API<br/>Node.js + Express/Fastify"]
+    A["Frontend<br/>MapLibre GL JS"] -->|"itinéraire A → B"| B["Backend API<br/>Node.js + Express"]
     B -->|"calcul du trajet"| C["Moteur de routing<br/>GraphHopper"]
     B -->|"requête ST_DWithin"| D[("PostgreSQL + PostGIS<br/>Parcours Terra Aventura")]
     E["DATAtourisme<br/>export CSV"] -->|"import (clean_terra_aventura.py)"| D
@@ -61,9 +66,7 @@ Pour les récupérer :
 
    Ce script corrige l'encodage du fichier, retire les doublons (un même circuit peut apparaître deux fois dans l'export : une fois comme "Produit", une fois comme "Lieu"), et génère un fichier `mon_export.geojson` prêt à être importé dans la base PostGIS.
 
-## Statut du projet
-
-En cours de construction.
+## Détails du projet
 
 3 répertoires : datas, backend et frontend.
 
@@ -152,6 +155,8 @@ DROP TABLE terra_aventura_import;
 
 ### Backend
 
+<i>Doc en cours</i>
+
 .env à compléter (voir exemple avec .env.example)
 
 ```bash
@@ -164,15 +169,12 @@ Puis pour calculer l'itinéraire, on utilise [GraphHopper](https://graphhopper.c
 
 ### Frontend
 
+<i>Doc en cours</i>
+
 ```bash
 $ cd frontend/
 $ npm run dev
 ```
-
-## Démo
-
-![arrivée](datas/images/1.png)  
-![recherche](datas/images/2.png)
 
 ## Hébergement et CI
 
