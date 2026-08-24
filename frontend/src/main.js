@@ -32,12 +32,18 @@ const form = document.getElementById("route-form");
 const submitButton = document.getElementById("route-submit");
 const submitIcon = submitButton.querySelector(".route-card__submit-icon");
 const errorEl = document.getElementById("route-error");
-const radiusButtons = document.querySelectorAll(".route-card__radius-btn");
+
+const allToggleButtons = document.querySelectorAll(".route-card__radius-btn");
+const radiusButtons = document.querySelectorAll("[data-rayon]");
+const vehiculeButtons = document.querySelectorAll("[data-vehicule]");
 
 let departMarker = null;
 let arriveeMarker = null;
 let terraAventuraMarkers = [];
 let selectedRayon = 10;
+let selectedVehicule = "car";
+let lastDepartPos = null;
+let lastArriveePos = null;
 let lastRouteGeometry = null; // pour rafraîchir juste les Terra Aventura sans rappeler GraphHopper
 
 // Force une pause utilisée pour espacer les appels à /api/geocode (Nominatim limite à 1 requête/seconde)
@@ -59,11 +65,11 @@ async function geocode(query) {
 }
 
 // Calcule l'itinéraire entre deux points (appel à GraphHopper) et récupère les Terra Aventura à proximité
-async function fetchItineraire(depart, arrivee, rayon) {
+async function fetchItineraire(depart, arrivee, rayon, vehicule) {
   const response = await fetch(`${API_BASE_URL}/api/itineraire`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ depart, arrivee, rayon }),
+    body: JSON.stringify({ depart, arrivee, rayon, vehicule }),
   });
 
   if (!response.ok) {
@@ -226,13 +232,47 @@ function setError(message) {
 }
 
 /**
- * Définit l'état de chargement du formulaire (soumission ou changement de rayon)
+ * Définit l'état de chargement du formulaire (soumission, changement de rayon ou de véhiculee)
  * @param {*} isLoading - true si les contrôles doivent être désactivés, false sinon
  */
 function setLoading(isLoading) {
   submitButton.disabled = isLoading;
   submitIcon.classList.toggle("is-spinning", isLoading);
-  radiusButtons.forEach((btn) => (btn.disabled = isLoading));
+  allToggleButtons.forEach((btn) => (btn.disabled = isLoading));
+}
+
+/**
+ * Recalcule l'itinéraire à partir des dernières positions géocodées connues
+ */
+async function runRouteSearch() {
+  if (!lastDepartPos || !lastArriveePos) return;
+
+  setError("");
+  setLoading(true);
+
+  try {
+    const { itineraire, terraAventura } = await fetchItineraire(
+      lastDepartPos,
+      lastArriveePos,
+      selectedRayon,
+      selectedVehicule,
+    );
+
+    displayRoute(itineraire.geometry);
+    displayTerraAventura(terraAventura);
+    lastRouteGeometry = itineraire.geometry;
+
+    map.fitBounds(computeBounds(itineraire.geometry.coordinates), {
+      padding: 80,
+      maxZoom: 12,
+      duration: 800,
+    });
+  } catch (err) {
+    console.error("Erreur lors du calcul de l'itinéraire :", err);
+    setError(err.message || "Impossible de calculer l'itinéraire.");
+  } finally {
+    setLoading(false);
+  }
 }
 
 /**
@@ -249,48 +289,41 @@ form.addEventListener("submit", async (event) => {
   setError("");
   setLoading(true);
 
+  let departPos;
+  let arriveePos;
+
   try {
     // Correctif : appels l'un après l'autre (et pas en parallèle avec Promise.all) pour respecter la limite de 1 requête/seconde imposée par Nominatim.
-    const departPos = await geocode(depart);
+    departPos = await geocode(depart);
     await wait(1000);
-    const arriveePos = await geocode(arrivee);
-
-    if (departMarker) departMarker.remove();
-    if (arriveeMarker) arriveeMarker.remove();
-
-    departMarker = placeMarker(departPos, "#d9a441");
-    arriveeMarker = placeMarker(arriveePos, "#a8432a");
-
-    // Cadrage 1 : on cadre la carte sur les deux markers de départ et d'arrivée
-    map.fitBounds(
-      computeBounds([
-        [departPos.lon, departPos.lat],
-        [arriveePos.lon, arriveePos.lat],
-      ]),
-      { padding: 80, maxZoom: 12, duration: 800 },
-    );
-
-    const { itineraire, terraAventura } = await fetchItineraire(
-      departPos,
-      arriveePos,
-      selectedRayon,
-    );
-    displayRoute(itineraire.geometry);
-    displayTerraAventura(terraAventura);
-    lastRouteGeometry = itineraire.geometry;
-
-    // Cadrage 2 : on cadre la carte sur l'ensemble du tracé de l'itinéraire
-    map.fitBounds(computeBounds(itineraire.geometry.coordinates), {
-      padding: 80,
-      maxZoom: 12,
-      duration: 800,
-    });
+    arriveePos = await geocode(arrivee);
   } catch (err) {
     console.error("Erreur lors de la recherche d'itinéraire :", err);
     setError(err.message || "Une erreur est survenue, vérifie l'orthographe.");
-  } finally {
     setLoading(false);
+    return;
   }
+
+  if (departMarker) departMarker.remove();
+  if (arriveeMarker) arriveeMarker.remove();
+
+  departMarker = placeMarker(departPos, "#d9a441");
+  arriveeMarker = placeMarker(arriveePos, "#a8432a");
+
+  // Cadrage 1 : on cadre la carte sur les deux markers de départ et d'arrivée
+  map.fitBounds(
+    computeBounds([
+      [departPos.lon, departPos.lat],
+      [arriveePos.lon, arriveePos.lat],
+    ]),
+    { padding: 80, maxZoom: 12, duration: 800 },
+  );
+
+  lastDepartPos = departPos;
+  lastArriveePos = arriveePos;
+
+  // runRouteSearch() gère son propre setLoading/try-catch pour la suite
+  await runRouteSearch();
 });
 
 // Changement de rayon : on ne recalcule pas l'itinéraire, on rafraîchit
@@ -326,5 +359,21 @@ radiusButtons.forEach((btn) => {
     } finally {
       setLoading(false);
     }
+  });
+});
+
+// Changement de véhicule : le tracé change potentiellement (routes cyclables vs routières), donc on rappelle GraphHopper.
+vehiculeButtons.forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const vehicule = btn.dataset.vehicule;
+    if (vehicule === selectedVehicule) return;
+
+    selectedVehicule = vehicule;
+    vehiculeButtons.forEach((b) => {
+      b.classList.toggle("is-active", b === btn);
+      b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+    });
+
+    await runRouteSearch();
   });
 });

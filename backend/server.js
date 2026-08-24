@@ -128,13 +128,14 @@ app.get("/api/geocode", async (req, res) => {
 
 /**
  * Calcule un itinéraire entre deux points et recherche les Terra Aventura à proximité
- * @param {Object} req.body - Les coordonnées de départ et d'arrivée
+ * @param {Object} req.body - Les coordonnées de départ et d'arrivée, et les options de trajet
  * @param {{lat: number, lon: number}} req.body.depart - Coordonnées de départ
  * @param {{lat: number, lon: number}} req.body.arrivee - Coordonnées d'arrivée
+ * @param {"car"|"bike"} [req.body.vehicule] - Mode de déplacement (voiture par défaut)
  * @returns {Promise<Object>} - L'itinéraire calculé et les Terra Aventura à proximité
  */
 app.post("/api/itineraire", async (req, res) => {
-  const { depart, arrivee } = req.body;
+  const { depart, arrivee, vehicule } = req.body;
 
   if (!depart?.lat || !depart?.lon || !arrivee?.lat || !arrivee?.lon) {
     return res.status(400).json({
@@ -149,17 +150,27 @@ app.post("/api/itineraire", async (req, res) => {
       .json({ error: "GRAPHHOPPER_API_KEY n'est pas configurée côté serveur" });
   }
 
-  const url = new URL("https://graphhopper.com/api/1/route");
+  const profile = vehicule === "bike" ? "bike" : "car";
 
-  url.searchParams.append("point", `${depart.lat},${depart.lon}`);
-  url.searchParams.append("point", `${arrivee.lat},${arrivee.lon}`);
-  url.searchParams.set("vehicle", "car");
-  url.searchParams.set("locale", "fr");
-  url.searchParams.set("points_encoded", "false");
+  const requestBody = {
+    profile,
+    points: [
+      [depart.lon, depart.lat],
+      [arrivee.lon, arrivee.lat],
+    ],
+    locale: "fr",
+    points_encoded: false,
+  };
+
+  const url = new URL("https://graphhopper.com/api/1/route");
   url.searchParams.set("key", GRAPHHOPPER_API_KEY);
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
