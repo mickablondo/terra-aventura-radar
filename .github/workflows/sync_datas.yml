@@ -1,0 +1,37 @@
+name: Injecter les données Terra Aventura
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "datas/datatourisme.csv"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récup repo
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dép
+        run: pip install psycopg2-binary
+
+      - name: Nettoie et filtre les données pourries
+        working-directory: data
+        run: python clean_terra_aventura.py datatourisme.csv
+
+      - name: Importer dans PostGIS (upsert)
+        working-directory: data
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: python import_to_postgis.py datatourisme.geojson
