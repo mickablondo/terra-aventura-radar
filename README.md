@@ -72,7 +72,7 @@ Pour les récupérer :
 
 ### Datas
 
-<i>WIP : à automatiser</i>
+#### Manuellement
 
 1. Fichier CSV récupéré
 2. Transformer le fichier CSV en geojson
@@ -152,6 +152,24 @@ DROP TABLE terra_aventura_import;
 > ```
 >
 > ![alt text](datas/images/result_query_geom.png)
+
+#### De manière automatisée (GitHub Actions)
+
+Une fois le fichier CSV récupéré et poussé sur le repository, un workflow GitHub Actions se déclenche automatiquement et injecte les données dans PostGIS.
+
+**Configuration requise :**
+1. Ajouter les secrets GitHub dans les paramètres du repository (`Settings` > `Secrets and variables` > `Actions`) :
+   - `DB_HOST`
+   - `DB_PORT`
+   - `DB_NAME`
+   - `DB_USER`
+   - `DB_PASSWORD`
+
+2. Le workflow (`.github/workflows/sync_datas.yml`) se déclenchera automatiquement à chaque push du fichier `datas/datatourisme.csv`, ou manuellement via `workflow_dispatch`.
+
+**Avantages :** Import automatisé et idempotent (rejouer le script plusieurs fois est sans risque).
+
+![alt text](datas/images/ci.png)
 
 ### Backend
 
