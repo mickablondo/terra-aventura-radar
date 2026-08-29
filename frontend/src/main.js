@@ -8,6 +8,10 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import "./style.css";
+import { inject } from "@vercel/analytics";
+
+// Injecte le script d'analytics Vercel (https://vercel.com/docs/concepts/analytics)
+inject();
 
 setWorkerUrl(workerUrl);
 
