@@ -155,25 +155,34 @@ DROP TABLE terra_aventura_import;
 
 ### Backend
 
-<i>Doc en cours</i>
+Serveur Node.js + Express qui expose l'API de calcul d'itinéraires et de recherche de parcours.
 
-.env à compléter (voir exemple avec .env.example)
+**Démarrage :**
 
 ```bash
 $ cd backend/
+$ npm install
 $ node server.js
 ```
 
-Pour géocoder les villes à marqueret calculer l'itinéraire, on utilise [GraphHopper](https://graphhopper.com).
+**Configuration :**  
+Compléter le fichier `.env` (voir `.env.example`) avec les identifiants [GraphHopper](https://graphhopper.com) et les paramètres de la base de données.
+
+**Endpoint principal :** `/api/route?origin=...&destination=...&radius=...`
 
 ### Frontend
 
-<i>Doc en cours</i>
+Interface de carte interactive construite avec [MapLibre GL JS](https://maplibre.org/) et [Vite](https://vitejs.dev/).
+
+**Démarrage :**
 
 ```bash
 $ cd frontend/
+$ npm install
 $ npm run dev
 ```
+
+Accédez à `http://localhost:5173`
 
 ## Hébergement et CI
 
