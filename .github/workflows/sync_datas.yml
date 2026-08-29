@@ -23,11 +23,11 @@ jobs:
         run: pip install psycopg2-binary
 
       - name: Nettoie et filtre les données pourries
-        working-directory: data
+        working-directory: datas
         run: python clean_terra_aventura.py datatourisme.csv
 
       - name: Importer dans PostGIS (upsert)
-        working-directory: data
+        working-directory: datas
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
