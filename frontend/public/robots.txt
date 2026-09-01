@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+ 
+Sitemap: https://terra-aventura-radar.vercel.app/sitemap.xml
