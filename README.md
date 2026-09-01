@@ -202,15 +202,7 @@ $ npm run dev
 
 Accédez à `http://localhost:5173`
 
-## Hébergement et CI
-
-### CI
-
-<i>WIP</i>
-
-### Hébergement
-
-<i>WIP</i>
+## Hébergement
 
 - Database : [Supabase](https://supabase.com/)
 - Backend : https://terra-aventura-radar.onrender.com/api/health sur [Render](https://render.com)
