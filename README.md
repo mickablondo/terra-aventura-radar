@@ -8,6 +8,11 @@
   </a>
 </p>
 
+> **Installez Terra Aventura Radar comme une application !**
+>
+> Le site est une **PWA** (Progressive Web App) : depuis un navigateur compatible, ouvrez la [version en ligne](https://terra-aventura-radar.vercel.app/) puis choisissez **Installer l'application** dans la barre d'adresse ou le menu du navigateur.  
+> Elle s'ouvrira ensuite dans sa propre fenêtre, avec son icône, comme une application classique.
+
 # terra-aventura-radar
 
 Carte interactive permettant de calculer un itinéraire et d'afficher tous les parcours **Terra Aventura** situés sur le trajet ou à moins de X km de la route principale.
@@ -158,6 +163,7 @@ DROP TABLE terra_aventura_import;
 Une fois le fichier CSV récupéré et poussé sur le repository, un workflow GitHub Actions se déclenche automatiquement et injecte les données dans PostGIS.
 
 **Configuration requise :**
+
 1. Ajouter les secrets GitHub dans les paramètres du repository (`Settings` > `Secrets and variables` > `Actions`) :
    - `DB_HOST`
    - `DB_PORT`
@@ -207,3 +213,6 @@ Accédez à `http://localhost:5173`
 - Database : [Supabase](https://supabase.com/)
 - Backend : https://terra-aventura-radar.onrender.com/api/health sur [Render](https://render.com)
 - Frontend : https://terra-aventura-radar.vercel.app/ sur [Vercel](https://vercel.com/)
+
+Le frontend est installable comme une PWA.  
+L'installation nécessite une connexion HTTPS en production (prise en charge par Vercel) ; `localhost` est également accepté pour les tests en développement.

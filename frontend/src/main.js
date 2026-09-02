@@ -13,6 +13,14 @@ import { inject } from "@vercel/analytics";
 // Injecte le script d'analytics Vercel (https://vercel.com/docs/concepts/analytics)
 inject();
 
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.error("Impossible d'enregistrer le service worker :", error);
+    });
+  });
+}
+
 setWorkerUrl(workerUrl);
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
