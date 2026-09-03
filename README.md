@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://terra-aventura-radar.vercel.app/">
-    <img src="https://img.shields.io/badge/EN LIGNE-terra--aventura--radar.vercel.app-16342A?style=for-the-badge" alt="Démo en ligne">
+    <img src="https://img.shields.io/badge/EN LIGNE-terra--aventura--radar.vercel.app-16342A?style=for-the-badge" alt="Version de production en ligne">
   </a>
 </p>
 
