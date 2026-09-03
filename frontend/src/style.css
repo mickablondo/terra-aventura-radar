@@ -191,6 +191,16 @@ body {
   outline-offset: 1px;
 }
 
+.route-card__summary {
+  margin: 0;
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  background: var(--color-cream);
+  border-left: 3px solid var(--color-forest);
+  color: var(--color-ink);
+}
+
 .route-card__error {
   margin: 0;
   font-family: var(--font-mono);

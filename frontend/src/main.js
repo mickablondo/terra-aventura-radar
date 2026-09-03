@@ -44,6 +44,7 @@ const form = document.getElementById("route-form");
 const submitButton = document.getElementById("route-submit");
 const submitIcon = submitButton.querySelector(".route-card__submit-icon");
 const errorEl = document.getElementById("route-error");
+const summaryEl = document.getElementById("route-summary");
 
 const allToggleButtons = document.querySelectorAll(".route-card__radius-btn");
 const radiusButtons = document.querySelectorAll("[data-rayon]");
@@ -235,6 +236,47 @@ function computeBounds(coordinates) {
 }
 
 /**
+ * Formate une distance en mètres pour l'affichage (ex: 654123 -> "654 km")
+ * @param {number} meters
+ * @returns {string}
+ */
+function formatDistance(meters) {
+  const km = meters / 1000;
+  return `${km.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} km`;
+}
+
+/**
+ * Formate une durée en millisecondes pour l'affichage (ex: 21127633 -> "5 h 52")
+ * @param {number} milliseconds
+ * @returns {string}
+ */
+function formatDuration(milliseconds) {
+  const totalMinutes = Math.round(milliseconds / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) return `${minutes} min`;
+  return `${hours} h ${minutes.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Affiche la distance et la durée du trajet calculé
+ * @param {number} distance - en mètres
+ * @param {number} duration - en millisecondes
+ */
+function setSummary(distance, duration) {
+  summaryEl.textContent = `${formatDistance(distance)} · environ ${formatDuration(duration)}`;
+  summaryEl.hidden = false;
+}
+
+/**
+ * Masque le résumé distance/durée (ex: en cas d'erreur, résultat obsolète)
+ */
+function clearSummary() {
+  summaryEl.hidden = true;
+}
+
+/**
  * Affiche un message d'erreur
  * @param {*} message - Le message d'erreur à afficher
  */
@@ -272,6 +314,7 @@ async function runRouteSearch() {
 
     displayRoute(itineraire.geometry);
     displayTerraAventura(terraAventura);
+    setSummary(itineraire.distance, itineraire.duration);
     lastRouteGeometry = itineraire.geometry;
 
     map.fitBounds(computeBounds(itineraire.geometry.coordinates), {
@@ -282,6 +325,7 @@ async function runRouteSearch() {
   } catch (err) {
     console.error("Erreur lors du calcul de l'itinéraire :", err);
     setError(err.message || "Impossible de calculer l'itinéraire.");
+    clearSummary();
   } finally {
     setLoading(false);
   }
