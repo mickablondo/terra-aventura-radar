@@ -45,6 +45,8 @@ const submitButton = document.getElementById("route-submit");
 const submitIcon = submitButton.querySelector(".route-card__submit-icon");
 const errorEl = document.getElementById("route-error");
 const summaryEl = document.getElementById("route-summary");
+const geolocBtn = document.getElementById("geoloc-btn");
+const departInput = document.getElementById("depart");
 
 const allToggleButtons = document.querySelectorAll(".route-card__radius-btn");
 const radiusButtons = document.querySelectorAll("[data-rayon]");
@@ -58,6 +60,9 @@ let selectedVehicule = "car";
 let lastDepartPos = null;
 let lastArriveePos = null;
 let lastRouteGeometry = null; // pour rafraîchir juste les Terra Aventura sans rappeler GraphHopper
+
+// Position obtenue par géolocalisation
+let geolocatedPos = null;
 
 // Force une pause utilisée pour espacer les appels à /api/geocode (Nominatim limite à 1 requête/seconde)
 function wait(ms) {
@@ -277,6 +282,51 @@ function clearSummary() {
 }
 
 /**
+ * Récupère la position actuelle via l'API de géolocalisation du navigateur,
+ * et la place directement dans geolocatedPos — sans passer par /api/geocode,
+ * puisqu'on a déjà des coordonnées.
+ */
+function useMyLocation() {
+  if (!navigator.geolocation) {
+    setError("La géolocalisation n'est pas disponible sur ce navigateur.");
+    return;
+  }
+
+  setError("");
+  geolocBtn.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      geolocatedPos = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+        displayName: "Ma position actuelle",
+      };
+      departInput.value = "Ma position actuelle";
+      geolocBtn.disabled = false;
+    },
+    (error) => {
+      console.error("Erreur de géolocalisation :", error);
+      setError(
+        "Impossible de récupérer ta position (vérifie que la géolocalisation est autorisée).",
+      );
+      geolocBtn.disabled = false;
+    },
+    { enableHighAccuracy: false, timeout: 10000 },
+  );
+}
+
+geolocBtn.addEventListener("click", useMyLocation);
+
+// Si l'utilisateur retape manuellement le champ Départ, on abandonne la
+// position géolocalisée (sinon le texte affiché ne correspondrait plus aux
+// coordonnées utilisées). Ce listener ne se déclenche que sur une vraie
+// frappe clavier, pas quand on fixe departInput.value par programme.
+departInput.addEventListener("input", () => {
+  geolocatedPos = null;
+});
+
+/**
  * Affiche un message d'erreur
  * @param {*} message - Le message d'erreur à afficher
  */
@@ -349,9 +399,13 @@ form.addEventListener("submit", async (event) => {
   let arriveePos;
 
   try {
-    // Correctif : appels l'un après l'autre (et pas en parallèle avec Promise.all) pour respecter la limite de 1 requête/seconde imposée par Nominatim.
-    departPos = await geocode(depart);
-    await wait(1000);
+    if (geolocatedPos) {
+      departPos = geolocatedPos;
+    } else {
+      departPos = await geocode(depart);
+      // Correctif : appels l'un après l'autre (et pas en parallèle avec Promise.all) pour respecter la limite de 1 requête/seconde imposée par Nominatim.
+      await wait(1000);
+    }
     arriveePos = await geocode(arrivee);
   } catch (err) {
     console.error("Erreur lors de la recherche d'itinéraire :", err);

@@ -66,7 +66,18 @@
 
     <form class="route-card" id="route-form">
       <div class="route-card__field">
-        <label for="depart">Départ</label>
+        <div class="route-card__label-row">
+          <label for="depart">Départ</label>
+          <button
+            type="button"
+            class="route-card__geoloc-btn"
+            id="geoloc-btn"
+            title="Utiliser ma position actuelle"
+            aria-label="Utiliser ma position actuelle"
+          >
+            📍
+          </button>
+        </div>
         <input
           type="text"
           id="depart"

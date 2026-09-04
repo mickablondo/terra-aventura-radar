@@ -120,6 +120,41 @@ body {
   gap: 4px;
 }
 
+.route-card__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.route-card__geoloc-btn {
+  border: none;
+  background: none;
+  padding: 0 2px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.route-card__geoloc-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.route-card__geoloc-btn:disabled {
+  opacity: 0.35;
+  cursor: wait;
+  transform: none;
+}
+
+.route-card__geoloc-btn:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 1px;
+}
+
 .route-card__field label {
   font-family: var(--font-mono);
   font-size: 0.66rem;
