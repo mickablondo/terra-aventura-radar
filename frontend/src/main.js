@@ -47,6 +47,7 @@ const errorEl = document.getElementById("route-error");
 const summaryEl = document.getElementById("route-summary");
 const geolocBtn = document.getElementById("geoloc-btn");
 const departInput = document.getElementById("depart");
+const swapBtn = document.getElementById("swap-btn");
 
 const allToggleButtons = document.querySelectorAll(".route-card__radius-btn");
 const radiusButtons = document.querySelectorAll("[data-rayon]");
@@ -325,6 +326,30 @@ geolocBtn.addEventListener("click", useMyLocation);
 departInput.addEventListener("input", () => {
   geolocatedPos = null;
 });
+
+/**
+ * Inverse les valeurs des champs Départ et Arrivée. Si le départ venait de
+ * la géolocalisation, "Ma position actuelle" n'a pas de sens comme point
+ * d'arrivée : on abandonne alors la position géolocalisée plutôt que de la
+ * déplacer telle quelle.
+ */
+function swapDepartArrivee() {
+  const departValue = departInput.value;
+  const arriveeValue = form.arrivee.value;
+
+  if (geolocatedPos) {
+    geolocatedPos = null;
+    departInput.value = arriveeValue;
+    form.arrivee.value = "";
+  } else {
+    departInput.value = arriveeValue;
+    form.arrivee.value = departValue;
+  }
+
+  setError("");
+}
+
+swapBtn.addEventListener("click", swapDepartArrivee);
 
 /**
  * Affiche un message d'erreur
