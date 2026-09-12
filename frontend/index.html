@@ -65,29 +65,40 @@
     </header>
 
     <form class="route-card" id="route-form">
-      <div class="route-card__field">
-        <div class="route-card__label-row">
-          <label for="depart">Départ</label>
-          <button
-            type="button"
-            class="route-card__geoloc-btn"
-            id="geoloc-btn"
-            title="Utiliser ma position actuelle"
-            aria-label="Utiliser ma position actuelle"
-          >
-            📍
-          </button>
+      <div class="route-card__od">
+        <div class="route-card__field">
+          <div class="route-card__label-row">
+            <label for="depart">Départ</label>
+            <button
+              type="button"
+              class="route-card__geoloc-btn"
+              id="geoloc-btn"
+              title="Utiliser ma position actuelle"
+              aria-label="Utiliser ma position actuelle"
+            >
+              📍
+            </button>
+          </div>
+          <input
+            type="text"
+            id="depart"
+            name="depart"
+            placeholder="Ville de départ"
+            autocomplete="off"
+            required
+          />
         </div>
-        <input
-          type="text"
-          id="depart"
-          name="depart"
-          placeholder="Ville de départ"
-          autocomplete="off"
-          required
-        />
-      </div>
-      <div class="route-card__swap">
+        <div class="route-card__field">
+          <label for="arrivee">Arrivée</label>
+          <input
+            type="text"
+            id="arrivee"
+            name="arrivee"
+            placeholder="Ville d'arrivée"
+            autocomplete="off"
+            required
+          />
+        </div>
         <button
           type="button"
           class="route-card__swap-btn"
@@ -97,17 +108,6 @@
         >
           ⇅
         </button>
-      </div>
-      <div class="route-card__field">
-        <label for="arrivee">Arrivée</label>
-        <input
-          type="text"
-          id="arrivee"
-          name="arrivee"
-          placeholder="Ville d'arrivée"
-          autocomplete="off"
-          required
-        />
       </div>
       <div class="route-card__field">
         <span class="route-card__radius-label">Véhicule</span>
@@ -136,37 +136,45 @@
       </div>
       <div class="route-card__field">
         <span class="route-card__radius-label">Rayon de recherche</span>
-        <div
-          class="route-card__radius-group"
-          role="group"
-          aria-label="Rayon de recherche"
-        >
-          <button type="button" class="route-card__radius-btn" data-rayon="5">
-            5 km
-          </button>
-          <button
-            type="button"
-            class="route-card__radius-btn is-active"
-            data-rayon="10"
-            aria-pressed="true"
+        <div class="route-card__radius-row">
+          <div
+            class="route-card__radius-group"
+            role="group"
+            aria-label="Rayon de recherche"
           >
-            10 km
-          </button>
-          <button type="button" class="route-card__radius-btn" data-rayon="20">
-            20 km
+            <button type="button" class="route-card__radius-btn" data-rayon="5">
+              5 km
+            </button>
+            <button
+              type="button"
+              class="route-card__radius-btn is-active"
+              data-rayon="10"
+              aria-pressed="true"
+            >
+              10 km
+            </button>
+            <button
+              type="button"
+              class="route-card__radius-btn"
+              data-rayon="20"
+            >
+              20 km
+            </button>
+          </div>
+          <button
+            type="submit"
+            class="route-card__submit"
+            id="route-submit"
+            aria-label="Tracer l'itinéraire"
+          >
+            <span class="route-card__submit-icon" aria-hidden="true"
+              >&rarr;</span
+            >
           </button>
         </div>
       </div>
       <p class="route-card__summary" id="route-summary" hidden></p>
       <p class="route-card__error" id="route-error" role="alert" hidden></p>
-      <button
-        type="submit"
-        class="route-card__submit"
-        id="route-submit"
-        aria-label="Tracer l'itinéraire"
-      >
-        <span class="route-card__submit-icon" aria-hidden="true">&rarr;</span>
-      </button>
     </form>
 
     <footer class="credit">
