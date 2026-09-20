@@ -62,7 +62,8 @@ let lastDepartPos = null;
 let lastArriveePos = null;
 let lastRouteGeometry = null; // pour rafraîchir juste les Terra Aventura sans rappeler GraphHopper
 
-// Position obtenue par géolocalisation
+// Position obtenue par géolocalisation, utilisée à la place d'un géocodage
+// tant que l'utilisateur ne retape pas manuellement le champ Départ.
 let geolocatedPos = null;
 
 // Force une pause utilisée pour espacer les appels à /api/geocode (Nominatim limite à 1 requête/seconde)
@@ -283,6 +284,25 @@ function clearSummary() {
 }
 
 /**
+ * Met à jour l'URL avec les paramètres de recherche actuels, pour permettre
+ * de partager un lien qui rouvre la même recherche. On n'encode jamais une
+ * position géolocalisée : elle n'a de sens que pour la personne qui l'a
+ * activée, pas pour quelqu'un d'autre ouvrant le lien.
+ */
+function updateUrlParams() {
+  if (geolocatedPos) return;
+
+  const params = new URLSearchParams({
+    depart: departInput.value.trim(),
+    arrivee: form.arrivee.value.trim(),
+    rayon: String(selectedRayon),
+    vehicule: selectedVehicule,
+  });
+
+  history.replaceState(null, "", `?${params.toString()}`);
+}
+
+/**
  * Récupère la position actuelle via l'API de géolocalisation du navigateur,
  * et la place directement dans geolocatedPos — sans passer par /api/geocode,
  * puisqu'on a déjà des coordonnées.
@@ -391,6 +411,7 @@ async function runRouteSearch() {
     displayTerraAventura(terraAventura);
     setSummary(itineraire.distance, itineraire.duration);
     lastRouteGeometry = itineraire.geometry;
+    updateUrlParams();
 
     map.fitBounds(computeBounds(itineraire.geometry.coordinates), {
       padding: 80,
@@ -485,6 +506,7 @@ radiusButtons.forEach((btn) => {
         selectedRayon,
       );
       displayTerraAventura(terraAventura);
+      updateUrlParams();
     } catch (err) {
       console.error("Erreur lors du changement de rayon :", err);
       setError(
@@ -512,3 +534,43 @@ vehiculeButtons.forEach((btn) => {
     await runRouteSearch();
   });
 });
+
+/**
+ * Si l'URL contient une recherche partagée (?depart=...&arrivee=...), on
+ * pré-remplit le formulaire avec ces valeurs et on relance la recherche
+ * automatiquement, comme si l'utilisateur venait de soumettre le formulaire.
+ */
+function loadFromUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const depart = params.get("depart");
+  const arrivee = params.get("arrivee");
+  const rayon = Number(params.get("rayon"));
+  const vehicule = params.get("vehicule");
+
+  if (!depart || !arrivee) return;
+
+  departInput.value = depart;
+  form.arrivee.value = arrivee;
+
+  if ([5, 10, 20].includes(rayon)) {
+    selectedRayon = rayon;
+    radiusButtons.forEach((b) => {
+      const isMatch = Number(b.dataset.rayon) === rayon;
+      b.classList.toggle("is-active", isMatch);
+      b.setAttribute("aria-pressed", isMatch ? "true" : "false");
+    });
+  }
+
+  if (vehicule === "car" || vehicule === "bike") {
+    selectedVehicule = vehicule;
+    vehiculeButtons.forEach((b) => {
+      const isMatch = b.dataset.vehicule === vehicule;
+      b.classList.toggle("is-active", isMatch);
+      b.setAttribute("aria-pressed", isMatch ? "true" : "false");
+    });
+  }
+
+  form.requestSubmit();
+}
+
+loadFromUrlParams();
