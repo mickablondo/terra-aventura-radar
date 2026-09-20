@@ -24,7 +24,6 @@ Carte interactive permettant de calculer un itinéraire et d'afficher tous les p
 
 ![arrivée](datas/images/1.png)  
 ![recherche](datas/images/2.png)
-![alt text](image.png)
 
 ## Architecture
 
