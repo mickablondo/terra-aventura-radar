@@ -79,10 +79,10 @@ Pour les récupérer :
 
 #### Manuellement
 
-1. Fichier CSV récupéré
-2. Transformer le fichier CSV en geojson
-3. Installer PostgreSQL avec PostGIS (dans les « Spatial Extensions » du Stack Builder installé avec postgre) : https://postgresql.org/download/
-4. Créer une database `terra_aventura_radar_db`
+1. Fichier CSV récupéré ;
+2. Transformer le fichier CSV en geojson ;
+3. Installer PostgreSQL avec PostGIS (dans les « Spatial Extensions » du Stack Builder installé avec postgre) : https://postgresql.org/download/ ;
+4. Créer une database `terra_aventura_radar_db` ;
 5. Créer la table :
 
 ```sql
@@ -102,15 +102,15 @@ CREATE TABLE terra_aventura (
 CREATE INDEX idx_terra_aventura_geom ON terra_aventura USING GIST (geom);
 ```
 
-5. Installer [GDAL](https://www.osgeo.org/projects/osgeo4w/) pour récupérer [ogr2ogr](https://gdal.org/en/stable/programs/ogr2ogr.html)
-6. Insérer les données dans une table temporaire (nommée ici terra_aventura_import) de la base depuis le fichier csv :
+6. Installer [GDAL](https://www.osgeo.org/projects/osgeo4w/) pour récupérer [ogr2ogr](https://gdal.org/en/stable/programs/ogr2ogr.html) ;
+7. Insérer les données dans une table temporaire (nommée ici terra_aventura_import) de la base depuis le fichier csv :
 
 ```bash
 $ cd datas
 $ ogr2ogr -f "PostgreSQL" "PG:host=localhost dbname=terra_aventura_radar_db user=postgres password=MOT_DE_PASSE" datatourisme.geojson -nln terra_aventura_import -nlt POINT
 ```
 
-7. Déplacer les données brutes de la table temporaire vers la table `terra_aventura` précédemment créée.
+8. Déplacer les données brutes de la table temporaire vers la table `terra_aventura` précédemment créée.
 
 ```sql
 INSERT INTO terra_aventura (
@@ -137,7 +137,7 @@ SELECT
 FROM terra_aventura_import;
 ```
 
-8. Suppression de la table temporaire :
+9. Suppression de la table temporaire :
 
 ```sql
 DROP TABLE terra_aventura_import;
