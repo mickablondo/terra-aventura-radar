@@ -45,6 +45,8 @@ const submitButton = document.getElementById("route-submit");
 const submitIcon = submitButton.querySelector(".route-card__submit-icon");
 const errorEl = document.getElementById("route-error");
 const summaryEl = document.getElementById("route-summary");
+const formToggle = document.getElementById("route-form-toggle");
+const routeFields = document.getElementById("route-fields");
 const geolocBtn = document.getElementById("geoloc-btn");
 const departInput = document.getElementById("depart");
 const swapBtn = document.getElementById("swap-btn");
@@ -61,6 +63,16 @@ let selectedVehicule = "car";
 let lastDepartPos = null;
 let lastArriveePos = null;
 let lastRouteGeometry = null; // pour rafraîchir juste les Terra Aventura sans rappeler GraphHopper
+
+formToggle.addEventListener("click", () => {
+  const isExpanded = formToggle.getAttribute("aria-expanded") === "true";
+  const label = isExpanded ? "Afficher le formulaire" : "Réduire le formulaire";
+  formToggle.setAttribute("aria-expanded", String(!isExpanded));
+  formToggle.setAttribute("aria-label", label);
+  formToggle.title = label;
+  routeFields.hidden = isExpanded;
+  form.classList.toggle("is-collapsed", isExpanded);
+});
 
 // Position obtenue par géolocalisation, utilisée à la place d'un géocodage
 // tant que l'utilisateur ne retape pas manuellement le champ Départ.
