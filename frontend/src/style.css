@@ -99,7 +99,7 @@ body {
   flex-direction: column;
   gap: 12px;
   width: min(90vw, 300px);
-  padding: 20px;
+  padding: 10px 20px 20px;
   background: var(--color-parchment);
   clip-path: polygon(
     0% 2%,
@@ -115,19 +115,22 @@ body {
 }
 
 .route-card.is-collapsed {
-  width: fit-content;
-  padding: 8px;
+  width: 28px;
+  min-height: 28px;
+  padding: 0;
   gap: 0;
 }
 
 .route-card__toggle {
+  position: absolute;
+  top: 8px;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: flex-end;
-  width: 24px;
-  height: 24px;
-  padding: 0;
+  width: 18px;
+  height: 18px;
+  padding: 2px;
   border: none;
   background: none;
   color: var(--color-forest);
@@ -145,12 +148,12 @@ body {
   flex-shrink: 0;
   border-top: 2px solid currentColor;
   border-right: 2px solid currentColor;
-  transform: rotate(-45deg);
+  transform: rotate(45deg);
   transition: transform 0.2s ease;
 }
 
 .route-card__toggle[aria-expanded="false"] .route-card__toggle-icon {
-  transform: rotate(135deg);
+  transform: rotate(225deg);
 }
 
 .route-card__fields {
@@ -244,7 +247,8 @@ body {
   outline-offset: 1px;
 }
 
-.route-card__field label {
+.route-card__field label,
+.route-card__label-row > label {
   font-family: var(--font-mono);
   font-size: 0.66rem;
   text-transform: uppercase;
@@ -412,13 +416,13 @@ body {
     width: auto;
     max-height: 55vh;
     overflow-y: auto;
-    padding: 14px 16px;
+    padding: 8px 16px 14px;
     gap: 8px;
   }
 
   .route-card.is-collapsed {
     right: auto;
-    width: fit-content;
+    width: 28px;
   }
 
   .route-card__fields {
