@@ -22,7 +22,7 @@ Carte interactive permettant de calculer un itinéraire et d'afficher tous les p
 
 ## De quoi ça a l'air ?
 
-![arrivée](datas/images/1.png)  
+![arrivée](datas/images/1.png)
 ![recherche](datas/images/2.png)
 
 ## Architecture
