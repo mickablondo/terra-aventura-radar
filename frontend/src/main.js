@@ -45,8 +45,12 @@ const submitButton = document.getElementById("route-submit");
 const submitIcon = submitButton.querySelector(".route-card__submit-icon");
 const errorEl = document.getElementById("route-error");
 const summaryEl = document.getElementById("route-summary");
+const statusEl = document.getElementById("route-status");
 const formToggle = document.getElementById("route-form-toggle");
 const routeFields = document.getElementById("route-fields");
+const routeResults = document.getElementById("route-results");
+const routeResultsEmpty = document.getElementById("route-results-empty");
+const routeResultsList = document.getElementById("route-results-list");
 const geolocBtn = document.getElementById("geoloc-btn");
 const departInput = document.getElementById("depart");
 const swapBtn = document.getElementById("swap-btn");
@@ -66,13 +70,19 @@ let lastRouteGeometry = null; // pour rafraîchir juste les Terra Aventura sans 
 
 formToggle.addEventListener("click", () => {
   const isExpanded = formToggle.getAttribute("aria-expanded") === "true";
-  const label = isExpanded ? "Afficher le formulaire" : "Réduire le formulaire";
-  formToggle.setAttribute("aria-expanded", String(!isExpanded));
+  setFormCollapsed(isExpanded);
+});
+
+function setFormCollapsed(isCollapsed) {
+  const label = isCollapsed
+    ? "Afficher le formulaire"
+    : "Réduire le formulaire";
+  formToggle.setAttribute("aria-expanded", String(!isCollapsed));
   formToggle.setAttribute("aria-label", label);
   formToggle.title = label;
-  routeFields.hidden = isExpanded;
-  form.classList.toggle("is-collapsed", isExpanded);
-});
+  routeFields.hidden = isCollapsed;
+  form.classList.toggle("is-collapsed", isCollapsed);
+}
 
 // Position obtenue par géolocalisation, utilisée à la place d'un géocodage
 // tant que l'utilisateur ne retape pas manuellement le champ Départ.
@@ -213,6 +223,9 @@ function clearTerraAventuraMarkers() {
  */
 function displayTerraAventura(sites) {
   clearTerraAventuraMarkers();
+  routeResultsList.replaceChildren();
+  routeResultsEmpty.hidden = sites.length > 0;
+  routeResults.hidden = false;
 
   for (const site of sites) {
     const liens = buildSiteLinks(site.site_internet);
@@ -227,6 +240,19 @@ function displayTerraAventura(sites) {
       .addTo(map);
 
     terraAventuraMarkers.push(marker);
+
+    const item = document.createElement("li");
+    const name = document.createElement("strong");
+    const details = document.createElement("span");
+    name.textContent = site.nom;
+    details.textContent = [
+      site.commune,
+      `${formatDistance(site.distance_m)} de l'itinéraire`,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    item.append(name, document.createTextNode(" "), details);
+    routeResultsList.append(item);
   }
 }
 
@@ -288,6 +314,11 @@ function setSummary(distance, duration) {
   summaryEl.hidden = false;
 }
 
+function setStatus(message) {
+  statusEl.textContent = message;
+  statusEl.hidden = !message;
+}
+
 /**
  * Masque le résumé distance/durée (ex: en cas d'erreur, résultat obsolète)
  */
@@ -337,6 +368,7 @@ function useMyLocation() {
       };
       departInput.value = "Ma position actuelle";
       geolocBtn.disabled = false;
+      setStatus("Position actuelle renseignée dans le champ Départ.");
     },
     (error) => {
       console.error("Erreur de géolocalisation :", error);
@@ -400,6 +432,13 @@ function setLoading(isLoading) {
   submitButton.disabled = isLoading;
   submitIcon.classList.toggle("is-spinning", isLoading);
   allToggleButtons.forEach((btn) => (btn.disabled = isLoading));
+  form.setAttribute("aria-busy", String(isLoading));
+
+  if (isLoading) {
+    setStatus("Recherche en cours…");
+  } else if (statusEl.textContent === "Recherche en cours…") {
+    setStatus("");
+  }
 }
 
 /**
@@ -424,12 +463,16 @@ async function runRouteSearch() {
     setSummary(itineraire.distance, itineraire.duration);
     lastRouteGeometry = itineraire.geometry;
     updateUrlParams();
+    setStatus(
+      `Itinéraire calculé. ${terraAventura.length} ${terraAventura.length === 1 ? "circuit trouvé" : "circuits trouvés"}.`,
+    );
 
     map.fitBounds(computeBounds(itineraire.geometry.coordinates), {
       padding: 80,
       maxZoom: 12,
       duration: 800,
     });
+
   } catch (err) {
     console.error("Erreur lors du calcul de l'itinéraire :", err);
     setError(err.message || "Impossible de calculer l'itinéraire.");
@@ -519,6 +562,9 @@ radiusButtons.forEach((btn) => {
       );
       displayTerraAventura(terraAventura);
       updateUrlParams();
+      setStatus(
+        `${terraAventura.length} ${terraAventura.length === 1 ? "circuit trouvé" : "circuits trouvés"} à proximité de l'itinéraire.`,
+      );
     } catch (err) {
       console.error("Erreur lors du changement de rayon :", err);
       setError(
