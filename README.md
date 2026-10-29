@@ -208,6 +208,28 @@ $ npm run dev
 
 Accédez à `http://localhost:5173`
 
+#### Vérification de l’accessibilité
+
+Les premières améliorations apportées sont :
+
+- un lien d’évitement vers le formulaire et des libellés accessibles pour la
+  carte et les groupes de choix ;
+- après une recherche, une section « Circuits à proximité » non visible à
+  l’écran, mais accessible aux lecteurs d’écran. Elle fournit une liste
+  numérotée des circuits avec leur nom, leur commune et leur distance à
+  l’itinéraire, pour retrouver les mêmes résultats que sur la carte sans
+  dépendre de ses marqueurs ;
+- une annonce du nombre de circuits trouvés aux technologies d’assistance ;
+- des annonces de chargement et de résultats pour les technologies d’assistance ;
+- des zones de focus clavier plus visibles et des commandes plus faciles à
+  actionner ;
+
+Pour poursuivre la vérification, il faudrait utiliser Lighthouse dans Chrome et axe DevTools,
+puis tester la navigation au clavier et avec un lecteur d’écran. Ces outils ne
+remplacent pas un audit complet : la conformité doit être évaluée avec la
+[méthode et la grille de contrôle RGAA officielles](https://accessibilite.numerique.gouv.fr/).
+Ces changements ne constituent pas une certification RGAA.
+
 ## Hébergement
 
 - Database : [Supabase](https://supabase.com/)

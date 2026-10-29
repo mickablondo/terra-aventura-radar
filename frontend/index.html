@@ -39,7 +39,7 @@
     />
   </head>
   <body>
-    <div id="map"></div>
+    <a class="skip-link" href="#route-form">Aller au formulaire de recherche</a>
 
     <header class="plaque">
       <svg class="plaque__compass" viewBox="0 0 40 40" aria-hidden="true">
@@ -64,135 +64,163 @@
       </div>
     </header>
 
-    <form class="route-card" id="route-form">
-      <button
-        type="button"
-        class="route-card__toggle"
-        id="route-form-toggle"
-        aria-expanded="true"
-        aria-controls="route-fields"
-        aria-label="Réduire le formulaire"
-        title="Réduire le formulaire"
-      >
-        <span class="route-card__toggle-icon" aria-hidden="true"></span>
-      </button>
-      <div class="route-card__fields" id="route-fields">
-        <div class="route-card__od">
-          <div class="route-card__field">
-            <div class="route-card__label-row">
-              <label for="depart">Départ</label>
-              <button
-                type="button"
-                class="route-card__geoloc-btn"
-                id="geoloc-btn"
-                title="Utiliser ma position actuelle"
-                aria-label="Utiliser ma position actuelle"
-              >
-                📍
-              </button>
+    <main>
+      <div
+        id="map"
+        role="region"
+        aria-label="Carte interactive"
+        aria-describedby="map-description"
+      ></div>
+      <p class="visually-hidden" id="map-description">
+        La carte affiche l'itinéraire et les circuits à proximité. Les circuits
+        trouvés sont également présentés dans une liste textuelle.
+      </p>
+
+      <form class="route-card" id="route-form">
+        <button
+          type="button"
+          class="route-card__toggle"
+          id="route-form-toggle"
+          aria-expanded="true"
+          aria-controls="route-fields"
+          aria-label="Réduire le formulaire"
+          title="Réduire le formulaire"
+        >
+          <span class="route-card__toggle-icon" aria-hidden="true"></span>
+        </button>
+        <div class="route-card__fields" id="route-fields">
+          <div class="route-card__od">
+            <div class="route-card__field">
+              <div class="route-card__label-row">
+                <label for="depart">Départ</label>
+                <button
+                  type="button"
+                  class="route-card__geoloc-btn"
+                  id="geoloc-btn"
+                  title="Utiliser ma position actuelle"
+                  aria-label="Utiliser ma position actuelle"
+                >
+                  📍
+                </button>
+              </div>
+              <input
+                type="text"
+                id="depart"
+                name="depart"
+                placeholder="Ville de départ"
+                autocomplete="off"
+                required
+              />
             </div>
-            <input
-              type="text"
-              id="depart"
-              name="depart"
-              placeholder="Ville de départ"
-              autocomplete="off"
-              required
-            />
-          </div>
-          <div class="route-card__field">
-            <label for="arrivee">Arrivée</label>
-            <input
-              type="text"
-              id="arrivee"
-              name="arrivee"
-              placeholder="Ville d'arrivée"
-              autocomplete="off"
-              required
-            />
-          </div>
-          <button
-            type="button"
-            class="route-card__swap-btn"
-            id="swap-btn"
-            title="Inverser départ et arrivée"
-            aria-label="Inverser départ et arrivée"
-          >
-            ⇅
-          </button>
-        </div>
-        <div class="route-card__field">
-          <span class="route-card__radius-label">Véhicule</span>
-          <div
-            class="route-card__radius-group"
-            role="group"
-            aria-label="Véhicule"
-          >
+            <div class="route-card__field">
+              <label for="arrivee">Arrivée</label>
+              <input
+                type="text"
+                id="arrivee"
+                name="arrivee"
+                placeholder="Ville d'arrivée"
+                autocomplete="off"
+                required
+              />
+            </div>
             <button
               type="button"
-              class="route-card__radius-btn is-active"
-              data-vehicule="car"
-              aria-pressed="true"
+              class="route-card__swap-btn"
+              id="swap-btn"
+              title="Inverser départ et arrivée"
+              aria-label="Inverser départ et arrivée"
             >
-              🚗 Voiture
-            </button>
-            <button
-              type="button"
-              class="route-card__radius-btn"
-              data-vehicule="bike"
-              aria-pressed="false"
-            >
-              🚲 Vélo
+              ⇅
             </button>
           </div>
-        </div>
-        <div class="route-card__field">
-          <span class="route-card__radius-label">Rayon de recherche</span>
-          <div class="route-card__radius-row">
+          <fieldset class="route-card__field route-card__fieldset">
+            <legend class="route-card__radius-label">Véhicule</legend>
             <div
               class="route-card__radius-group"
               role="group"
-              aria-label="Rayon de recherche"
+              aria-label="Véhicule"
             >
-              <button
-                type="button"
-                class="route-card__radius-btn"
-                data-rayon="5"
-              >
-                5 km
-              </button>
               <button
                 type="button"
                 class="route-card__radius-btn is-active"
-                data-rayon="10"
+                data-vehicule="car"
                 aria-pressed="true"
               >
-                10 km
+                🚗 Voiture
               </button>
               <button
                 type="button"
                 class="route-card__radius-btn"
-                data-rayon="20"
+                data-vehicule="bike"
+                aria-pressed="false"
               >
-                20 km
+                🚲 Vélo
               </button>
             </div>
-            <button
-              type="submit"
-              class="route-card__submit"
-              id="route-submit"
-              aria-label="Tracer l'itinéraire"
-            >
-              <span class="route-card__submit-icon" aria-hidden="true"
-                >&rarr;</span
+          </fieldset>
+          <fieldset class="route-card__field route-card__fieldset">
+            <legend class="route-card__radius-label">Rayon de recherche</legend>
+            <div class="route-card__radius-row">
+              <div
+                class="route-card__radius-group"
+                role="group"
+                aria-label="Rayon de recherche"
               >
-            </button>
-          </div>
+                <button
+                  type="button"
+                  class="route-card__radius-btn"
+                  data-rayon="5"
+                  aria-pressed="false"
+                >
+                  5 km
+                </button>
+                <button
+                  type="button"
+                  class="route-card__radius-btn is-active"
+                  data-rayon="10"
+                  aria-pressed="true"
+                >
+                  10 km
+                </button>
+                <button
+                  type="button"
+                  class="route-card__radius-btn"
+                  data-rayon="20"
+                  aria-pressed="false"
+                >
+                  20 km
+                </button>
+              </div>
+              <button
+                type="submit"
+                class="route-card__submit"
+                id="route-submit"
+                aria-label="Tracer l'itinéraire"
+              >
+                <span class="route-card__submit-icon" aria-hidden="true"
+                  >&rarr;</span
+                >
+              </button>
+            </div>
+          </fieldset>
         </div>
-      </div>
-      <p class="route-card__summary" id="route-summary" hidden></p>
-      <p class="route-card__error" id="route-error" role="alert" hidden></p>
-    </form>
+        <p class="route-card__error" id="route-error" role="alert" hidden></p>
+      </form>
+      <p class="visually-hidden" id="route-status" role="status" hidden></p>
+      <section
+        class="route-results visually-hidden"
+        id="route-results"
+        aria-labelledby="route-results-title"
+        hidden
+      >
+        <h2 id="route-results-title">Circuits à proximité</h2>
+        <p class="route-card__summary" id="route-summary" hidden></p>
+        <p id="route-results-empty" hidden>
+          Aucun circuit trouvé pour ce trajet et ce rayon.
+        </p>
+        <ol id="route-results-list"></ol>
+      </section>
+    </main>
 
     <footer class="credit">
       © 2026 · Mickaël Blondeau .
